@@ -15,19 +15,18 @@ ini_set('max_execution_time', 300);
 ini_set('memory_limit', '-1');
 
 
-Route::get('/', 'Index@index_fromDriver')->name("index_page");
+Route::get('/', 'Index@index')->name("index_page");
 
 Route::post('login', 'Login@checkLogin')->name('Login');
 
-Route::get('/signup', function () {
-    return view('signup');
-});
+Route::post('signup', 'SignUp@Sign_up')->name('signup');
+
 
 Route::get('songDetail/{id}', 'SongDetail@get_Song');
 
-Route::get('BuySong', 'BuySong@song_table')->middleware(['Normal_user']);
+Route::get('BuySong', 'BuySong@song_table')->name('buy_song')->middleware(['Normal_user']);
 
-Route::get('BuySong/{id}', 'BuySong@signtature_song')->middleware(['Normal_user'])->where(['so' => '[0-9]']);
+Route::get('BuySong/{id}', 'BuySong@signtature_song')->middleware(['Normal_user'])->where(['so' => '[0-9]'])->name('buysong_detail');
 
 Route::get('logout','Logout@index')->name('logout');
 
@@ -35,7 +34,9 @@ Route::get('UploadSong','UploadSong@index')->name('Uploadsong')->middleware(['No
 
 Route::post('UploadSong','UploadSong@postSong')->name('PostSong')->middleware(['Normal_user', 'Admin_user']);
 
-Route::get('RevertSignature', 'RevertSignatureSong@index')->middleware(['Normal_user']);
+Route::get('RevertSignature', 'RevertSignatureSong@index')->name('get_Revert')->middleware(['Normal_user']);
+
+Route::post('RevertSignature','RevertSignatureSong@postSong')->name('Revert')->middleware(['Normal_user']);
 
 // Route Put SOng item from google API
 Route::get('put-existing/{filename}', function($filename) {
@@ -78,3 +79,27 @@ Route::get('share', function() {
     return Storage::cloud()->url($file['path']);
 });
 
+
+
+
+Route::get('downloadfile', function() { 
+    $path = '1v-JaIv6putERcWxtrEi8jzpGlNxzZXQQ';
+    $dir = '/';
+    $recursive = false; // Get subdirectories also?
+    $contents = collect(Storage::cloud()->listContents($dir, $recursive));
+    //var_dump($contents);
+    $file = $contents
+        ->where('type', '=', 'file')
+        ->where('path', '=', $path)
+        ->first(); // there can be duplicate file names!
+    //return $file; // array with file info
+    //var_dump($file);
+    if(!$file){
+        echo "Your file have problem.";
+        die();
+    }
+    $rawData = Storage::cloud()->get($file['path']);
+    return response($rawData, 200)
+        ->header('ContentType', $file['mimetype'])
+        ->header('Content-Disposition', "attachment; filename='$path'");
+});

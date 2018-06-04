@@ -1,6 +1,8 @@
 @extends('layouts/app')
 
 @section('content')
-@include('partials.contents.revert_signature')
+<div class="container" style=" margin-top: 18%; text-align: center;">
+@include('partials.contents.uploadsign')
+</div>
 @endsection
 
